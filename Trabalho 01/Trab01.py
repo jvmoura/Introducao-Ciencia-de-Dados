@@ -1,4 +1,4 @@
-from urllib.request import urlopen
+import pandas as pd
 from bs4 import BeautifulSoup
 #Utilizei a biblioteca requests pois a OLX nao permitia o acesso utilizando o urlopen da a urllib.request 
 import requests
@@ -45,6 +45,9 @@ for pag in range(1, 31):
         #substituimos caracteres que podem causar problema no arquivo csv
         s = preco.text.replace('\n' , ' ')
         s = s.replace(',' , '')
+        s = s.replace('.' , '')
+        s = s.replace('R$' , '')
+        s = s.replace(' ' , '')
         #adicionamos o conteudo a lista
         products_price.append(s)
 
@@ -58,9 +61,17 @@ for pag in range(1, 31):
         seller_location.append(s)
         
 #criando o arquivo csv
-f = open("dataset.csv","w")
+f = open("unorderedDataset.csv","w")
 f.write("Modelo,Valor,Local\n")
 
 #escrevemos os dados nas primeiras 1500 linhas do arquivo
 for l in range(0, 1499):
     f.write(products_name[l]+','+ products_price[l]+','+ seller_location[l] + '\n')
+
+#Organizamos o dataset
+df = pd.read_csv('unorderedDataset.csv', encoding="ISO-8859-1")
+#Remove linhas com espaços nulos
+df.dropna(subset=['Modelo', 'Valor', 'Local'], inplace=True)
+#Ordena por valor
+sorted_df = df.sort_values(by='Valor')
+sorted_df.to_csv('orderedDataset.csv', index=False)
